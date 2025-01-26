@@ -1,5 +1,5 @@
 # Project Details
-| **Assigment Title** | Cheat Sheet |
+| **Assigment Title** | Layer 1 |
 | :------------- |:-------------|
 | **Course**              | PGDip Computing in Cloud Technologies  |
 | **Module**              | Networking (2024/25) |
