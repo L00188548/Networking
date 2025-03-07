@@ -1,0 +1,158 @@
+
+/// Switch 1
+
+hostname Switch1
+
+int vlan 10
+ description "interface to NetMan"
+ ip address 192.168.10.1 255.255.255.0
+ no shut
+exit
+
+int vlan 5
+ description "interface to NetMan"
+ ip address 192.168.5.1 255.255.255.0
+ no shut
+exit
+
+int vlan 6
+ description "interface to NetMan"
+ ip address 192.168.6.1 255.255.255.0
+ no shut
+exit
+
+
+/// Switch 2
+ 
+hostname Switch2
+  
+int vlan 10
+ description "interface to NetMan"
+ ip address 192.168.10.2 255.255.255.0
+ no shut
+exit
+
+int vlan 5
+ description "interface to NetMan"
+ ip address 192.168.5.2 255.255.255.0
+ no shut
+exit
+
+int vlan 6
+ description "interface to NetMan"
+ ip address 192.168.6.2 255.255.255.0
+ no shut
+exit
+ 
+
+
+/// Switch 3
+
+hostname Switch3
+ 
+int vlan 10
+ description "interface to NetMan"
+ ip address 192.168.10.3 255.255.255.0
+ no shut
+exit
+
+int vlan 5
+ description "interface to NetMan"
+ ip address 192.168.5.3 255.255.255.0
+ no shut
+exit
+
+int vlan 6
+ description "interface to NetMan"
+ ip address 192.168.6.3 255.255.255.0
+ no shut
+exit
+
+
+
+/// Switch 4
+
+
+hostname Switch4
+ 
+int vlan 10
+ description "interface to NetMan"
+ ip address 192.168.10.4 255.255.255.0
+ no shut
+exit
+
+int vlan 5
+ description "interface to NetMan"
+ ip address 192.168.5.4 255.255.255.0
+ no shut
+exit
+
+int vlan 6
+ description "interface to NetMan"
+ ip address 192.168.6.4 255.255.255.0
+ no shut
+exit 
+
+
+ 
+///Comfig to all switches
+ 
+ vlan 2
+  name hosts
+  exit
+ vlan 4
+  name power
+  exit
+ vlan 5
+  name clients
+  exit
+ vlan 6
+  name servers
+  exit
+ vlan 10
+  name netman
+  exit
+
+int range gi0/1-3
+ description Client-VlAN5
+ switchport mode access
+ switchport access vlan 5
+ switchport port-security mac-address sticky
+ switchport port-security violation protect
+ exit
+ 
+int range gi1/1-3
+ description Server-VlAN6
+ switchport mode access
+ switchport access vlan 6
+ exit
+
+int range gi3/0-3
+ switchport trunk native vlan 999
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ exit
+
+
+///VPC1
+ip 192.168.5.21 255.255.255.0
+wr mem
+
+///VPC2
+ip 192.168.5.22 255.255.255.0
+wr mem
+
+///VPC3
+ip 192.168.5.23 255.255.255.0
+wr mem
+
+///VPC4
+ip 192.168.5.24 255.255.255.0
+wr mem
+
+/// Handy comands
+en
+conf t
+sh run
+wr mem
+sh cdp nei
