@@ -1,0 +1,574 @@
+/////////Port Config for Middleton
+	
+config system global
+set alias "FortiGate-VM64-KVM"
+set hostname "Middleton"
+set timezone 04
+end
+edit "port10"
+set vdom "root"
+set ip 172.16.0. 255.255.255.0
+set allowaccess ping
+set type physical
+set alias "Internet"
+set lldp-reception enable
+set role wan
+set snmp-index 2
+next
+	
+	edit "port3"
+        set vdom "root"
+        set ip 172.168.1.1 255.255.255.0
+        set allowaccess ping https ssh http
+        set type physical
+        set alias "“Inside”"
+        set device-identification enable
+        set lldp-transmission enable
+        set role lan
+        set snmp-index 3
+    next
+	
+	config firewall address
+	edit "InsideLan"
+		set associated-interface port3
+		set subnet 172.168.1.0 255.255.255.0
+    end
+	
+config firewall policy
+edit "1"
+set name Inside->Outside
+set srcintf port3
+set dstintf port10
+set srcaddr InsideLan
+set dstaddr all
+set action accept
+set schedule always
+set service ALL
+set nat enable
+	next
+
+/////////////////Config IPSeC Tunnel to Middleton
+edit "Tunnel_to_MID_local_subnet_1"
+        set uuid 9b757660-0a8a-51f0-a535-ccef396d681e
+        set allow-routing enable
+        set subnet 172.168.2.0 255.255.255.0
+    next
+    edit "Tunnel_to_MID_remote_subnet_1"
+        set uuid 9baffcc2-0a8a-51f0-da0a-aae4f61eb4d1
+        set allow-routing enable
+        set subnet 172.168.1.0 255.255.255.0
+    next
+end
+ eedit "Tunnel_to_MID_local"
+        set uuid 9bac9cb2-0a8a-51f0-039d-d4231b8c2041
+        set member "Tunnel_to_MID_local_subnet_1"
+        set comment "VPN: Tunnel_to_MID (Created by VPN wizard)"
+        set allow-routing enable
+    next
+    edit "Tunnel_to_MID_remote"
+        set uuid 9be83eb6-0a8a-51f0-bc39-60b9688fed5d
+        set member "Tunnel_to_MID_remote_subnet_1"
+        set comment "VPN: Tunnel_to_MID (Created by VPN wizard)"
+        set allow-routing enable
+    next
+end
+config vpn ipsec phase1-interface
+    edit "Tunnel_to_MID"
+        set interface "port10"
+        set peertype any
+        set net-device disable
+        set proposal des-md5 des-sha1
+        set comments "VPN: Tunnel_to_MID (Created by VPN wizard)"
+        set wizard-type static-fortigate
+        set remote-gw 172.16.0.1
+        set psksecret ENC 13GkqD/qNmaFCeyRDowb3XtHn8poO5xrR372JowbQzQ3x2LvhXDk/0UkEPxVShyZUQdbjGo8k/XId+sW9jzYBHOXPuMfiZYyAdKgMMC/2cNALqtU8AvmueHThKYuAC3/ncLe2sX0uoiyauz0bX/53ty3SmuqnciAu7R0D+0Yfbd7rP40eYkDtLzl2SDvhX8mdvRvBA==
+    next
+end
+config vpn ipsec phase2-interface
+    edit "Tunnel_to_MID"
+        set phase1name "Tunnel_to_MID"
+        set proposal des-md5 des-sha1
+        set comments "VPN: Tunnel_to_MID (Created by VPN wizard)"
+        set src-addr-type name
+        set dst-addr-type name
+        set src-name "Tunnel_to_MID_local"
+        set dst-name "Tunnel_to_MID_remote"
+    next
+end
+edit 2
+        set name "vpn_Tunnel_to_MID_local_0"
+        set uuid 9c2b9e68-0a8a-51f0-bbdb-e18cb739e11f
+        set srcintf "port3"
+        set dstintf "Tunnel_to_MID"
+        set srcaddr "Tunnel_to_MID_local"
+        set dstaddr "Tunnel_to_MID_remote"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set comments "VPN: Tunnel_to_MID (Created by VPN wizard)"
+    next
+    edit 3
+        set name "vpn_Tunnel_to_MID_remote_0"
+        set uuid 9cc12ee2-0a8a-51f0-399c-fc31251b9c26
+        set srcintf "Tunnel_to_MID"
+        set dstintf "port3"
+        set srcaddr "Tunnel_to_MID_remote"
+        set dstaddr "Tunnel_to_MID_local"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set comments "VPN: Tunnel_to_MID (Created by VPN wizard)"
+    next
+end
+config router static
+    edit 1
+        set device "Tunnel_to_MID"
+        set comment "VPN: Tunnel_to_MID (Created by VPN wizard)"
+        set dstaddr "Tunnel_to_MID_remote"
+    next
+    edit 2
+        set distance 254
+        set comment "VPN: Tunnel_to_MID (Created by VPN wizard)"
+        set blackhole enable
+        set dstaddr "Tunnel_to_MID_remote"
+    next
+end
+
+
+#####Middleton PC
+ip 172.168.1.10 255.255.255.0 172.168.1.1	
+	
+//////////////////Port Config for Headoffice
+set alias "FortiGate-VM64-KVM"
+set hostname "HeadOffice"
+set timezone 04
+end
+config system interface
+edit "port10"
+set vdom "root"
+set ip 172.16.0.2 255.255.255.0
+set allowaccess ping
+set type physical
+set alias "Internet"
+set lldp-reception enable
+set role wan
+set snmp-index 2
+next
+	
+	edit "port3"
+        set vdom "root"
+        set ip 172.168.2.1 255.255.255.0
+        set allowaccess ping https ssh http
+        set type physical
+        set alias "“Inside”"
+        set device-identification enable
+        set lldp-transmission enable
+        set role lan
+        set snmp-index 3
+    next
+	end
+	config firewall address
+	edit "InsideLan"
+		set associated-interface port3
+		set subnet 172.168.2.0 255.255.255.0
+    end
+	
+config firewall policy
+    edit 1
+        set name "Inside->Outside"
+        set uuid 3d1ae202-0af9-51f0-6ae7-24f7f13efdf5
+        set srcintf "port3"
+        set dstintf "port10"
+        set srcaddr "InsideLan"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set nat enable
+    next
+	edit "Tunnel_to_HO"
+        set vdom "root"
+        set type tunnel
+        set snmp-index 13
+        set interface "port10"
+    next
+end
+
+/////////////////Config IPSeC Tunnel to Headoffice
+edit "Tunnel_to_HO_local_subnet_1"
+        set uuid 054dc8ac-0afa-51f0-c463-0ce977b44d6d
+        set allow-routing enable
+        set subnet 172.168.1.0 255.255.255.0
+    next
+    edit "Tunnel_to_HO_remote_subnet_1"
+        set uuid 058d478e-0afa-51f0-b18f-b766259feccf
+        set allow-routing enable
+        set subnet 172.168.2.0 255.255.255.0
+    next
+end
+	edit "Tunnel_to_HO_local"
+        set uuid 05873d4e-0afa-51f0-39f5-1be0ad62c38a
+        set member "Tunnel_to_HO_local_subnet_1"
+        set comment "VPN: Tunnel_to_HO (Created by VPN wizard)"
+        set allow-routing enable
+    next
+    edit "Tunnel_to_HO_remote"
+        set uuid 05c56cea-0afa-51f0-389f-69a37b01ddf1
+        set member "Tunnel_to_HO_remote_subnet_1"
+        set comment "VPN: Tunnel_to_HO (Created by VPN wizard)"
+        set allow-routing enable
+    next
+end
+config vpn ipsec phase1-interface
+    edit "Tunnel_to_HO"
+        set interface "port10"
+        set peertype any
+        set net-device disable
+        set proposal des-md5 des-sha1
+        set comments "VPN: Tunnel_to_HO (Created by VPN wizard)"
+        set wizard-type static-fortigate
+        set remote-gw 172.16.0.2
+        set psksecret ENC Eguu4WUnWsuJZj1eyNrm7WHj0wVwUd0a22JJIiONncszFt0knmvtZ3tdT4GUyE5RAqW8jons2XT4/qyXKgPj5/hTGVzr3R7rk4G71f59I4EQYpMGRXzlZin0poWOzPiXv0/MWjPoSSCMZKsqX0lx5NOhPkjlYO914nnobLUYQyY0n6c5+KjeOXoHJ1aFTtvdOgxZbA==
+    next
+end
+config vpn ipsec phase2-interface
+    edit "Tunnel_to_HO"
+        set phase1name "Tunnel_to_HO"
+        set proposal des-md5 des-sha1
+        set comments "VPN: Tunnel_to_HO (Created by VPN wizard)"
+        set src-addr-type name
+        set dst-addr-type name
+        set src-name "Tunnel_to_HO_local"
+        set dst-name "Tunnel_to_HO_remote"
+    next
+end
+edit 2
+        set name "vpn_Tunnel_to_HO_local_0"
+        set uuid 06074714-0afa-51f0-5d66-09f9141320cd
+        set srcintf "port3"
+        set dstintf "Tunnel_to_HO"
+        set srcaddr "Tunnel_to_HO_local"
+        set dstaddr "Tunnel_to_HO_remote"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set comments "VPN: Tunnel_to_HO (Created by VPN wizard)"
+    next
+    edit 3
+        set name "vpn_Tunnel_to_HO_remote_0"
+        set uuid 063aeede-0afa-51f0-eb53-b8ecac8a6c95
+        set srcintf "Tunnel_to_HO"
+        set dstintf "port3"
+        set srcaddr "Tunnel_to_HO_remote"
+        set dstaddr "Tunnel_to_HO_local"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set comments "VPN: Tunnel_to_HO (Created by VPN wizard)"
+    next
+end
+
+	
+#####HeadOffice PC
+ip 172.168.2.10 255.255.255.0 172.168.2.1
+
+
+
+///////////////////DC1
+
+	config system global
+    set alias "FortiGate-VM64-KVM"
+    set hostname "DC1"
+    set timezone 04
+end
+
+config system interface
+edit "port3"
+        set vdom "root"
+        set ip 172.168.4.1 255.255.255.0
+        set allowaccess ping https ssh http
+        set type physical
+        set alias "Inside"
+        set device-identification enable
+        set lldp-transmission enable
+        set role lan
+        set snmp-index 3
+    next
+	
+	edit "port10"
+        set vdom "root"
+        set ip 172.16.0.4 255.255.255.0
+        set allowaccess ping
+        set type physical
+        set alias "Internet"
+        set lldp-reception enable
+        set role wan
+        set snmp-index 10
+    next
+	end
+	config firewall address
+	edit "InsideLan"
+        set uuid b275d940-0b2a-51f0-5d3e-3f21b48a9aea
+        set associated-interface "port3"
+        set subnet 172.168.4.0 255.255.255.0
+    next
+	
+config firewall policy
+    edit "1"
+		set name Inside->Outside
+		set srcintf port3
+		set dstintf port2
+		set srcaddr InsideLan
+		set dstaddr all
+		set action accept
+		set schedule always
+		set service ALL
+		set nat enable
+	next
+	edit "Tunnel_To_DC2"
+        set vdom "root"
+        set type tunnel
+        set snmp-index 13
+        set interface "port10"
+    next
+
+////////////////Config IPSeC Tunnel to DataCenter1
+edit "InsideLan"
+        set uuid b275d940-0b2a-51f0-5d3e-3f21b48a9aea
+        set associated-interface "port3"
+        set subnet 172.168.4.0 255.255.255.0
+    next
+    edit "Tunnel_To_DC2_local_subnet_1"
+        set uuid 2a7cb8dc-0b2b-51f0-6266-3ad2c0ee6bac
+        set allow-routing enable
+        set subnet 172.168.4.0 255.255.255.0
+    next
+    edit "Tunnel_To_DC2_remote_subnet_1"
+        set uuid 2ab6e5c0-0b2b-51f0-9288-b6e5492b9142
+        set allow-routing enable
+        set subnet 172.168.3.0 255.255.255.0
+    next
+	edit "Tunnel_To_DC2_local"
+        set uuid 2ab41ba6-0b2b-51f0-17bb-38ddeb954116
+        set member "Tunnel_To_DC2_local_subnet_1"
+        set comment "VPN: Tunnel_To_DC2 (Created by VPN wizard)"
+        set allow-routing enable
+    next
+    edit "Tunnel_To_DC2_remote"
+        set uuid 2aeca1ce-0b2b-51f0-5583-c70b1c206337
+        set member "Tunnel_To_DC2_remote_subnet_1"
+        set comment "VPN: Tunnel_To_DC2 (Created by VPN wizard)"
+        set allow-routing enable
+    next
+end
+config vpn ipsec phase1-interface
+    edit "Tunnel_To_DC2"
+        set interface "port10"
+        set peertype any
+        set net-device disable
+        set proposal des-md5 des-sha1
+        set comments "VPN: Tunnel_To_DC2 (Created by VPN wizard)"
+        set wizard-type static-fortigate
+        set remote-gw 172.16.0.3
+        set psksecret ENC eohQK8EWbcfSLDjFRB/Rh5kbTkPxtEywaDgn6eOOlw/AvGKEdW7mn5WYCdSC2SZSuoeVTeaytNbSjvbR0yOwSrkNZWcvCjgHPeakc1kIx7IBQhzZl9WiNkAvtbSRmHv/0mkjls9s5OjC4QfhBECvUR784tv1Z7P5UE+AN3CFvfA2lTLcFAUnDOyg4b1GMkpxskw52w==
+    next
+end
+config vpn ipsec phase2-interface
+    edit "Tunnel_To_DC2"
+        set phase1name "Tunnel_To_DC2"
+        set proposal des-md5 des-sha1
+        set comments "VPN: Tunnel_To_DC2 (Created by VPN wizard)"
+        set src-addr-type name
+        set dst-addr-type name
+        set src-name "Tunnel_To_DC2_local"
+        set dst-name "Tunnel_To_DC2_remote"
+    next
+end
+edit 2
+        set name "vpn_Tunnel_To_DC2_local_0"
+        set uuid 2b2e8080-0b2b-51f0-4bed-7d8efb8891a9
+        set srcintf "port3"
+        set dstintf "Tunnel_To_DC2"
+        set srcaddr "Tunnel_To_DC2_local"
+        set dstaddr "Tunnel_To_DC2_remote"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set comments "VPN: Tunnel_To_DC2 (Created by VPN wizard)"
+    next
+    edit 3
+        set name "vpn_Tunnel_To_DC2_remote_0"
+        set uuid 2b671b66-0b2b-51f0-1a19-270718789ae6
+        set srcintf "Tunnel_To_DC2"
+        set dstintf "port3"
+        set srcaddr "Tunnel_To_DC2_remote"
+        set dstaddr "Tunnel_To_DC2_local"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set comments "VPN: Tunnel_To_DC2 (Created by VPN wizard)"
+    next
+end
+config router static
+    edit 1
+        set device "Tunnel_To_DC2"
+        set comment "VPN: Tunnel_To_DC2 (Created by VPN wizard)"
+        set dstaddr "Tunnel_To_DC2_remote"
+    next
+    edit 2
+        set distance 254
+        set comment "VPN: Tunnel_To_DC2 (Created by VPN wizard)"
+        set blackhole enable
+        set dstaddr "Tunnel_To_DC2_remote"
+    next
+end
+	
+/////////////DataCenter1 PC Config
+ip 172.168.4.10 255.255.255.0 172.168.4.1
+
+///////////////////DC2
+
+config system global
+set alias "FortiGate-VM64-KVM"
+set hostname "DC2"
+set timezone 04
+end
+config system interface
+edit "port3"
+        set vdom "root"
+        set ip 172.168.3.1 255.255.255.0
+        set allowaccess ping https ssh http
+        set type physical
+        set alias "“Inside”"
+        set device-identification enable
+        set lldp-transmission enable
+        set role lan
+        set snmp-index 3
+    next
+	
+	edit "port3"
+        set vdom "root"
+        set ip 172.168.3.1 255.255.255.0
+        set allowaccess ping https ssh http
+        set type physical
+        set alias "“Inside”"
+        set device-identification enable
+        set lldp-transmission enable
+        set role lan
+        set snmp-index 3
+    next
+	end
+	config firewall address
+	edit "InsideLan"
+        set uuid 301dc5b0-0b26-51f0-e99c-eb883c09b9a2
+        set associated-interface "port3"
+        set subnet 172.168.3.0 255.255.255.0
+    next
+	
+config firewall policy
+    edit 1
+        set name "Inside->Outside"
+        set uuid 46352104-0b26-51f0-5dc5-4b5315994d24
+        set srcintf "port3"
+        set dstintf "port10"
+        set srcaddr "InsideLan"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set nat enable
+    next
+	
+/////////Config IPSeC Tunnel to DataCenter2
+edit "InsideLan"
+        set uuid 301dc5b0-0b26-51f0-e99c-eb883c09b9a2
+        set associated-interface "port3"
+        set subnet 172.168.3.0 255.255.255.0
+    next
+    edit "Tunnel_To_DC1_local_subnet_1"
+        set uuid 018b7578-0b29-51f0-9a58-2ff614d6b7dc
+        set allow-routing enable
+        set subnet 172.168.3.0 255.255.255.0
+    next
+    edit "Tunnel_To_DC1_remote_subnet_1"
+        set uuid 01c522fa-0b29-51f0-5fa6-a34d68640b09
+        set allow-routing enable
+        set subnet 172.168.4.0 255.255.255.0
+    next
+	edit "Tunnel_To_DC1_local"
+        set uuid 01c14d6a-0b29-51f0-42ac-76c9f439f977
+        set member "Tunnel_To_DC1_local_subnet_1"
+        set comment "VPN: Tunnel_To_DC1 (Created by VPN wizard)"
+        set allow-routing enable
+    next
+    edit "Tunnel_To_DC1_remote"
+        set uuid 01fc983e-0b29-51f0-bcdf-249af6863079
+        set member "Tunnel_To_DC1_remote_subnet_1"
+        set comment "VPN: Tunnel_To_DC1 (Created by VPN wizard)"
+        set allow-routing enable
+    next
+	end
+	config vpn ipsec phase1-interface
+    edit "Tunnel_To_DC1"
+        set interface "port10"
+        set peertype any
+        set net-device disable
+        set proposal des-md5 des-sha1
+        set comments "VPN: Tunnel_To_DC1 (Created by VPN wizard)"
+        set wizard-type static-fortigate
+        set remote-gw 172.16.0.4
+        set psksecret ENC /xY1GWMvFMa7aCUWUwoSH+Hy3r2SYPJbr70/xRmpGADWUJsVyIJkpZHjHVI6JqH6zyuviGxBjlef0twPY08Yx3lxkFxY0tQkiuPaN3a8SuFXDekKH/WaJhj7aHwQI6xH5ewuio3uUQ3wFaBzPfAK46awDCk+gKu9XOYGtiPJuCKszTUvJuc5/JrX+xc0aSJtdLkeBg==
+    next
+end
+config vpn ipsec phase2-interface
+    edit "Tunnel_To_DC1"
+        set phase1name "Tunnel_To_DC1"
+        set proposal des-md5 des-sha1
+        set comments "VPN: Tunnel_To_DC1 (Created by VPN wizard)"
+        set src-addr-type name
+        set dst-addr-type name
+        set src-name "Tunnel_To_DC1_local"
+        set dst-name "Tunnel_To_DC1_remote"
+    next
+end
+edit 2
+        set name "vpn_Tunnel_To_DC1_local_0"
+        set uuid 023e89e2-0b29-51f0-26b4-7392b638f2d6
+        set srcintf "port3"
+        set dstintf "Tunnel_To_DC1"
+        set srcaddr "Tunnel_To_DC1_local"
+        set dstaddr "Tunnel_To_DC1_remote"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set comments "VPN: Tunnel_To_DC1 (Created by VPN wizard)"
+    next
+    edit 3
+        set name "vpn_Tunnel_To_DC1_remote_0"
+        set uuid 027720e0-0b29-51f0-2599-313ed67e089a
+        set srcintf "Tunnel_To_DC1"
+        set dstintf "port3"
+        set srcaddr "Tunnel_To_DC1_remote"
+        set dstaddr "Tunnel_To_DC1_local"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set comments "VPN: Tunnel_To_DC1 (Created by VPN wizard)"
+    next
+end
+config router static
+    edit 1
+        set device "Tunnel_To_DC1"
+        set comment "VPN: Tunnel_To_DC1 (Created by VPN wizard)"
+        set dstaddr "Tunnel_To_DC1_remote"
+    next
+    edit 2
+        set distance 254
+        set comment "VPN: Tunnel_To_DC1 (Created by VPN wizard)"
+        set blackhole enable
+        set dstaddr "Tunnel_To_DC1_remote"
+    next
+end
+	
+//////////////DataCenter2 PC Config
+ip 172.168.3.10 255.255.255.0 172.168.3.1
